@@ -55,15 +55,24 @@ const ProfileCreationProvider: React.FC = ({ children }) => {
 
   // Initial checks
   useEffect(() => {
+    let isSubscribed = true
+
     const fetchData = async () => {
       const mintingContract = getRabbitMintingContract()
       const hasClaimed = await mintingContract.methods.hasClaimed(account).call()
 
-      dispatch({ type: 'initialize', step: hasClaimed ? 1 : 0 })
+      // When changing wallets quickly unmounting before the hasClaim finished causes a React error
+      if (isSubscribed) {
+        dispatch({ type: 'initialize', step: hasClaimed ? 1 : 0 })
+      }
     }
 
     if (account) {
       fetchData()
+    }
+
+    return () => {
+      isSubscribed = false
     }
   }, [account, dispatch])
 
